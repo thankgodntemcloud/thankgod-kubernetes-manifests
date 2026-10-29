@@ -1,0 +1,30 @@
+# https://grafana.digitalwitch.online -> Grafana (Grafana's own login)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: observability
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    # No HTTP->HTTPS redirect, so Let's Encrypt's HTTP check works before the
+    # certificate exists; HSTS makes browsers use HTTPS after the first visit
+    nginx.org/ssl-redirect: "false"
+    nginx.org/hsts: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - grafana.digitalwitch.online
+      secretName: grafana-tls
+  rules:
+    - host: grafana.digitalwitch.online
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  name: http
